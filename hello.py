@@ -1,6 +1,5 @@
-def main():
-    print("Hello from ocr-benchmarking!")
+from docling.document_converter import DocumentConverter
 
-
-if __name__ == "__main__":
-    main()
+converter = DocumentConverter()
+result = converter.convert("dataset/testing_data/images/82092117.png")
+print(result.document.export_to_markdown())

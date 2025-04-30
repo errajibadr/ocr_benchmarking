@@ -1,7 +1,54 @@
 [project]
 name = "ocr-benchmarking"
 version = "0.1.0"
-description = "Add your description here"
+description = "Benchmarking various OCR techniques on scanned document datasets"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=1.26.0",
+    "pillow>=10.0.0",
+    "matplotlib>=3.8.0",
+    "pandas>=2.1.0",
+    "pytesseract>=0.3.10",
+    "levenshtein>=0.22.0",
+    "tqdm>=4.66.0",
+    "pydantic>=2.5.0",
+    "opencv-python>=4.8.0",
+    "psutil>=5.9.0",
+    "docling",
+]
+
+[project.optional-dependencies]
+easyocr = [
+    "easyocr>=1.7.0",
+]
+paddleocr = [
+    "paddleocr>=2.6.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.9.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+    "jupyter>=1.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel>=0.41.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true

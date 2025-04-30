@@ -1,0 +1,1 @@
+"""Traditional OCR method implementations."""
