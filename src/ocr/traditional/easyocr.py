@@ -62,6 +62,9 @@ class EasyOCRProcessor(OCRProcessor):
         self._verbose = verbose
         self._reader = None
 
+        # Initialize the reader immediately to catch any issues early
+        self._initialize_reader()
+
     def _initialize_reader(self):
         """Initialize the EasyOCR reader if not already initialized."""
         if self._reader is None:
@@ -160,8 +163,13 @@ class EasyOCRProcessor(OCRProcessor):
         Returns:
             OCRResult containing extracted text and metadata
         """
-        # Initialize the reader if needed
-        self._initialize_reader()
+        # Ensure the reader is initialized
+        if self._reader is None:
+            self._initialize_reader()
+
+        # Double-check that reader is properly initialized
+        if self._reader is None:
+            raise RuntimeError("Failed to initialize EasyOCR reader")
 
         start_time = time.time()
 
