@@ -1,0 +1,78 @@
+{
+  "processor_name": "EasyOCR",
+  "results": [
+    {
+      "processor_name": "EasyOCR",
+      "accuracy_metrics": {
+        "character_accuracy": 0.0,
+        "word_accuracy": 0.0,
+        "levenshtein_distance": 0.0,
+        "normalized_levenshtein_distance": 0.0
+      },
+      "performance_metrics": {
+        "processing_time_sec": 4.634692192077637,
+        "pages_per_minute": 12.94584354545954,
+        "characters_per_second": 80.69575810003113
+      },
+      "resource_metrics": {
+        "peak_memory_usage_mb": 847.5625,
+        "avg_cpu_percent": 42.8,
+        "gpu_memory_usage_mb": null,
+        "avg_gpu_percent": null
+      },
+      "total_score": 0.10730615615844728
+    },
+    {
+      "processor_name": "EasyOCR",
+      "accuracy_metrics": {
+        "character_accuracy": 0.0,
+        "word_accuracy": 0.0,
+        "levenshtein_distance": 0.0,
+        "normalized_levenshtein_distance": 0.0
+      },
+      "performance_metrics": {
+        "processing_time_sec": 3.9355368614196777,
+        "pages_per_minute": 15.245696359290617,
+        "characters_per_second": 70.38429819205835
+      },
+      "resource_metrics": {
+        "peak_memory_usage_mb": 21.015625,
+        "avg_cpu_percent": 55.1,
+        "gpu_memory_usage_mb": null,
+        "avg_gpu_percent": null
+      },
+      "total_score": 0.12128926277160645
+    }
+  ],
+  "avg_character_accuracy": 0.0,
+  "avg_word_accuracy": 0.0,
+  "avg_processing_time_sec": 4.285114526748657,
+  "avg_peak_memory_mb": 434.2890625,
+  "metadata": {
+    "capabilities": {
+      "languages": [
+        "en"
+      ],
+      "handles_handwriting": true,
+      "handles_complex_layouts": true,
+      "handles_tables": false,
+      "handles_forms": false,
+      "supports_rotation_correction": true,
+      "supports_skew_correction": true,
+      "extracts_structure": false
+    },
+    "resource_requirements": {
+      "cpu_intensive": true,
+      "gpu_required": false,
+      "min_ram_gb": 4.0,
+      "min_gpu_ram_gb": 0.0,
+      "supports_cpu_only": true,
+      "estimated_time_per_page_sec": 3.0
+    },
+    "privacy_level": "local"
+  },
+  "extracted_texts": {
+    "82092117.png": "ATT; 61 aokoxo77I0 Fxsu-*6-5037 D 10.0, 1719 Pu Attsrtey Golerd Batty D. Manta CNADLMTULIAc\"mut Fu 9MDNC0TAn8 T IMML (1444*& To 0ex1 Iarnudr maran TBONENIL 005u6 DATU Jnoni NomR0Bac RLAIWUACOVREET EI TPBDEENUD mba#Etb\"WolLS PICNLLETTCIE: UmwEMmDAiuhrrbct WOTAGTA Da TETT*4 Monagdmardouyr#W#0IBRMuIn REnny DDAEIrMD CAANLn M1@ TtB TL Morrt LE Dobar UTR 1 5 cutu Dt* Labcta Ged",
+    "82200067_0069.png": "11t/m Wtbt 68} 441 Ltht LOnkmd PD Doot T* @L 1E EAET: Penn AMY & paniK Btclwgwmh ptad 5errk 098 #rar Ie 16 DaO Stakn \"@3e D JEA 4r R4 cirect Accoui6 ND ChA4%9HeADouA7BRE YITHIM \"ERCON {16 + 910320 Brortk oD @O1bMetL LKHTJ 05uL7RA Laht8 10070 491L 4 40 DIi 2 9 Le 1 70m1 D8P Eto"
+  }
+}
