@@ -1,0 +1,21 @@
+2025-05-01 13:43:22,002 - root - INFO - Starting PaddleOCR processing with verbose logging
+2025-05-01 13:43:28,473 - src.ocr.traditional.paddleocr - ERROR - PaddleOCR runtime error for 82092117.png: (NotFound) No allocator found for the place, Place(undefined:0)
+  [Hint: Expected iter != allocators.end(), but received iter == allocators.end().] (at /Users/paddle/xly/workspace/7b5bf7ed-f223-4c37-9311-a1c9d604457b/Paddle/paddle/phi/core/memory/allocation/allocator_facade.cc:381)
+  [operator < matmul > error]
+2025-05-01 13:43:31,053 - src.ocr.traditional.paddleocr - ERROR - PaddleOCR fallback failed for 82092117.png: (NotFound) No allocator found for the place, Place(undefined:0)
+  [Hint: Expected iter != allocators.end(), but received iter == allocators.end().] (at /Users/paddle/xly/workspace/7b5bf7ed-f223-4c37-9311-a1c9d604457b/Paddle/paddle/phi/core/memory/allocation/allocator_facade.cc:381)
+  [operator < matmul > error]
+2025-05-01 13:44:56,834 - root - INFO - Starting PaddleOCR processing with verbose logging
+2025-05-01 13:45:03,117 - src.ocr.traditional.paddleocr - ERROR - PaddleOCR runtime error for 82092117.png: (NotFound) No allocator found for the place, Place(undefined:0)
+  [Hint: Expected iter != allocators.end(), but received iter == allocators.end().] (at /Users/paddle/xly/workspace/7b5bf7ed-f223-4c37-9311-a1c9d604457b/Paddle/paddle/phi/core/memory/allocation/allocator_facade.cc:381)
+  [operator < matmul > error]
+2025-05-01 13:45:05,733 - src.ocr.traditional.paddleocr - ERROR - PaddleOCR fallback failed for 82092117.png: (NotFound) No allocator found for the place, Place(undefined:0)
+  [Hint: Expected iter != allocators.end(), but received iter == allocators.end().] (at /Users/paddle/xly/workspace/7b5bf7ed-f223-4c37-9311-a1c9d604457b/Paddle/paddle/phi/core/memory/allocation/allocator_facade.cc:381)
+  [operator < matmul > error]
+2025-05-01 14:04:21,420 - root - INFO - Starting PaddleOCR processing with verbose logging
+2025-05-01 14:04:27,858 - src.ocr.traditional.paddleocr - ERROR - PaddleOCR runtime error for 82092117.png: (NotFound) No allocator found for the place, Place(undefined:0)
+  [Hint: Expected iter != allocators.end(), but received iter == allocators.end().] (at /Users/paddle/xly/workspace/7b5bf7ed-f223-4c37-9311-a1c9d604457b/Paddle/paddle/phi/core/memory/allocation/allocator_facade.cc:381)
+  [operator < matmul > error]
+2025-05-01 14:04:30,478 - src.ocr.traditional.paddleocr - ERROR - PaddleOCR fallback failed for 82092117.png: (NotFound) No allocator found for the place, Place(undefined:0)
+  [Hint: Expected iter != allocators.end(), but received iter == allocators.end().] (at /Users/paddle/xly/workspace/7b5bf7ed-f223-4c37-9311-a1c9d604457b/Paddle/paddle/phi/core/memory/allocation/allocator_facade.cc:381)
+  [operator < matmul > error]

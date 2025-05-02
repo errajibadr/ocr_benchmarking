@@ -4,50 +4,50 @@
     {
       "processor_name": "PaddleOCR",
       "accuracy_metrics": {
-        "character_accuracy": 0.0,
-        "word_accuracy": 0.0,
-        "levenshtein_distance": 0.0,
-        "normalized_levenshtein_distance": 0.0
+        "character_accuracy": 0.22240943555181125,
+        "word_accuracy": 0.20353982300884954,
+        "levenshtein_distance": 923.0,
+        "normalized_levenshtein_distance": 0.7775905644481887
       },
       "performance_metrics": {
-        "processing_time_sec": 5.092599868774414,
-        "pages_per_minute": 11.781801348245256,
-        "characters_per_second": 0.0
+        "processing_time_sec": 1.618180274963379,
+        "pages_per_minute": 37.07868704638478,
+        "characters_per_second": 179.21365405752644
       },
       "resource_metrics": {
-        "peak_memory_usage_mb": 848.40625,
-        "avg_cpu_percent": 34.4,
+        "peak_memory_usage_mb": 648.625,
+        "avg_cpu_percent": 28.1,
         "gpu_memory_usage_mb": null,
         "avg_gpu_percent": null
       },
-      "total_score": 0.09814800262451172
+      "total_score": 0.33801609792499676
     },
     {
       "processor_name": "PaddleOCR",
       "accuracy_metrics": {
-        "character_accuracy": 0.0,
-        "word_accuracy": 0.0,
-        "levenshtein_distance": 0.0,
-        "normalized_levenshtein_distance": 0.0
+        "character_accuracy": 0.4084919472913616,
+        "word_accuracy": 0.10526315789473685,
+        "levenshtein_distance": 404.0,
+        "normalized_levenshtein_distance": 0.5915080527086384
       },
       "performance_metrics": {
-        "processing_time_sec": 6.15022611618042,
-        "pages_per_minute": 9.755738873103876,
-        "characters_per_second": 63.57489832306026
+        "processing_time_sec": 6.079453945159912,
+        "pages_per_minute": 9.869307431429482,
+        "characters_per_second": 64.31498676148212
       },
       "resource_metrics": {
-        "peak_memory_usage_mb": -94.265625,
-        "avg_cpu_percent": 30.5,
+        "peak_memory_usage_mb": 96.15625,
+        "avg_cpu_percent": 27.8,
         "gpu_memory_usage_mb": null,
         "avg_gpu_percent": null
       },
-      "total_score": 0.07699547767639162
+      "total_score": 0.28391296317124115
     }
   ],
-  "avg_character_accuracy": 0.0,
-  "avg_word_accuracy": 0.0,
-  "avg_processing_time_sec": 5.621412992477417,
-  "avg_peak_memory_mb": 377.0703125,
+  "avg_character_accuracy": 0.31545069142158644,
+  "avg_word_accuracy": 0.1544014904517932,
+  "avg_processing_time_sec": 3.8488171100616455,
+  "avg_peak_memory_mb": 372.390625,
   "metadata": {
     "capabilities": {
       "languages": [
@@ -72,7 +72,7 @@
     "privacy_level": "local"
   },
   "extracted_texts": {
-    "82092117.png": "",
+    "82092117.png": "Attorney General Betty D, Montgomery CONKIDENTIAL FACSIMILE \u2018TRANSMISSION COVER SHEET FAX NO, (644) 466-5087 PHONE NUMBER: (336)335-7363 DATE: 120s = NUMBER OF PAGES INCLUDING COVER SHEET: SENDER/PHONE NUMBER: __June Fivnn for Bris Brown/(6t4) 466.9920 SPECIAL INSTRUCTIONS: OF. OP: . re Lf",
     "82200067_0069.png": "40/T/00 10 3118 LORTLLARD PEE .A. FROM T..y MAY 49 AB Jee nnt CUAECT: ONLY EF PARTIAL SESION CONTINUE WTH ONISIONE} SCOPE] Partad R DAstON Soauto South #RAPSs 7 ORSON Babe #REP2,6 DRVSON Soatug North 4 Bugent REPS DYISION Hotena QIRECT ACCOUNTG AND CHAINO HEADOUARTERED WITHN THE REGION Tex-Boa Toxsoo - Partad 2 Mad-c Dart-tdart 81 rp Trp 1064 18 77 1 19 600 / T 82200067 C Paget of $ Pages"
   }
 }
