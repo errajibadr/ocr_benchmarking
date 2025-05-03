@@ -8,7 +8,7 @@ import os
 import pathlib
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -181,4 +181,5 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
     plt.ylabel("Success Rate")
     plt.xticks(rotation=45)
     plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "success_rate_comparison.png"))
     plt.savefig(os.path.join(output_dir, "success_rate_comparison.png"))
