@@ -12,6 +12,8 @@ The easiest way to run the comparison is with Google Colab:
    - Markdown sections marked with `# %% [markdown]` should be converted to text cells
 3. Run the cells in order to process your images
 
+**Important Note**: `colab_notebook.py` is NOT meant to be run directly as a Python script. It's specially formatted for copying into Google Colab, with cell markers and Colab-specific imports.
+
 ## Local Setup
 
 ### Prerequisites
@@ -63,6 +65,17 @@ This benchmark compares the following OCR methods:
 3. **PaddleOCR** - Efficient OCR system by Baidu
 4. **Keras-OCR** - Packaged OCR based on CRAFT text detector and Keras CRNN recognizer
 
+## Evaluation Metrics
+
+The benchmark evaluates OCR methods using:
+
+1. **Text similarity** - How similar the extracted text is to the ground truth using SequenceMatcher
+2. **Word Error Rate (WER)** - Measures the edit distance between words (lower is better)
+3. **Character Error Rate (CER)** - Measures the edit distance between characters (lower is better) 
+4. **Common Word Accuracy** - Percentage of reference words that appear in the extracted text
+5. **Processing time** - How long each method takes to process images
+6. **Success rate** - Percentage of images successfully processed
+
 ## Running the Benchmark
 
 ```bash
@@ -88,17 +101,11 @@ def ocr_your_method(image_path: str) -> str:
 
 Then add it to the `OCR_METHODS` dictionary at the bottom of the file.
 
-## Evaluation Metrics
-
-The benchmark evaluates OCR methods using:
-
-1. **Text similarity** - How close the extracted text is to the ground truth
-2. **Processing time** - How long each method takes to process images
-3. **Success rate** - Percentage of images successfully processed
-
 ## Outputs
 
 Results are saved in the `results/` directory:
 - JSON files with extracted text for each method
 - Visualization plots comparing performance metrics
 - Similarity scores compared to ground truth
+- A summary table highlighting the best-performing methods
+- JSON export of evaluation metrics

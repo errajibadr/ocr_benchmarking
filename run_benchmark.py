@@ -5,7 +5,6 @@ OCR Benchmark Runner - Runs comparison between OCR methods and ground truth
 
 import argparse
 import os
-import pathlib
 import sys
 
 from ocr_comparison import (
