@@ -6,9 +6,11 @@ This repository contains scripts to benchmark different OCR (Optical Character R
 
 The easiest way to run the comparison is with Google Colab:
 
-1. Open the notebook in Google Colab: [Open in Colab](https://colab.research.google.com)
-2. Upload the notebook file `ocr_benchmarking.ipynb` to Colab
-3. Follow the instructions in the notebook to upload your dataset
+1. Open a new notebook in Google Colab: [Open in Colab](https://colab.research.google.com)
+2. Copy the contents of `colab_notebook.py` into cells in the notebook
+   - Each section marked with `# %%` should be a new cell
+   - Markdown sections marked with `# %% [markdown]` should be converted to text cells
+3. Run the cells in order to process your images
 
 ## Local Setup
 

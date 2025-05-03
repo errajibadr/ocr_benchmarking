@@ -19,6 +19,7 @@ dependencies = [
     "google-genai>=1.13.0",
     "openai>=1.77.0",
     "keras-ocr>=0.9.3",
+    "seaborn>=0.13.2",
 ]
 
 [project.optional-dependencies]
