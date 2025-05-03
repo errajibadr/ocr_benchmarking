@@ -1,5 +1,5 @@
 # To run this code you need to install the following dependencies:
-# pip install google-genai python-dotenv tqdm
+# pip install openai python-dotenv tqdm
 
 import base64
 import json
@@ -7,25 +7,12 @@ import os
 import pathlib
 import shutil
 import time
-from typing import List
 
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
-from pydantic import BaseModel, Field
+from openai import OpenAI
 from tqdm import tqdm
 
 load_dotenv()
-
-
-class OCRResult(BaseModel):
-    """Schema for OCR result including the extracted text, document category and tags."""
-
-    markdown: str = Field(description="The extracted text from the image with proper formatting")
-    category: str = Field(
-        description="The category of the document (e.g., invoice, receipt, form, letter, article)"
-    )
-    tags: List[str] = Field(description="The tags relevant to the document content")
 
 
 def sample_dataset(dataset_dir: str = "dataset/testing_data/images", seed: int | None = 1):
@@ -58,12 +45,12 @@ def encode_image(image_path: str) -> str:
 
 
 def generate_ocr_for_image(
-    client, model: str, image_path: str, retries: int = 3, delay: int = 2
+    client: OpenAI, model: str, image_path: str, retries: int = 1, delay: int = 1
 ) -> str:
-    """Generate OCR for a single image using Gemini.
+    """Generate OCR for a single image using Gemini through OpenAI API.
 
     Args:
-        client: Gemini API client
+        client: OpenAI client configured to call Gemini
         model: Model name to use
         image_path: Path to the image file
         retries: Number of retry attempts for API failures
@@ -72,43 +59,58 @@ def generate_ocr_for_image(
     Returns:
         Extracted text from the image
     """
-    image_bytes = pathlib.Path(image_path).read_bytes()
-
-    prompt_text = (
-        "Extract all text from this image with proper formatting. "
-        "Also identify the document category and provide relevant tags."
-    )
-
-    contents = [
-        types.Content(
-            role="user",
-            parts=[
-                types.Part.from_text(text=prompt_text),
-                types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
-            ],
-        ),
-    ]
+    # Encode the image to base64
+    image_data = encode_image(image_path)
 
     for attempt in range(retries):
         try:
-            response = client.models.generate_content(
+            response = client.chat.completions.create(
                 model=model,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    system_instruction="""Generate OCRs with Markdowns and 
-                    correctly formatted layout when possible""",
-                    response_mime_type="application/json",
-                    response_schema=OCRResult,
-                ),
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Generate OCRs with Markdowns and correctly formatted layout when possible",
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Extract all text from this image with proper formatting. Also identify the document category and provide relevant tags.",
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/png;base64,{image_data}"},
+                            },
+                        ],
+                    },
+                ],
+                response_format={"type": "json_object"},
             )
 
-            # Parse the structured response
-            result: OCRResult = response.parsed
-            print(" Category: ", result.category)
-            print(" Tags: ", result.tags)
+            # Parse the JSON response
+            response_content = response.choices[0].message.content
 
-            # Return the markdown text
-            return result.markdown
+            # Sometimes the response might come back with markdown backticks, clean it up
+            if response_content.startswith("```json"):
+                response_content = response_content.replace("```json", "", 1)
+                response_content = response_content.replace("```", "", 1)
+            elif response_content.startswith("```"):
+                response_content = response_content.replace("```", "", 2)
+
+            response_content = response_content.strip()
+
+            result = json.loads(response_content)
+
+            # Print the category and tags if available
+            if "category" in result:
+                print(" Category: ", result["category"])
+            if "tags" in result:
+                print(" Tags: ", result["tags"])
+
+            # Return the extracted text
+            return result.get("markdown", "")
+
         except Exception as e:
             if attempt < retries - 1:
                 print(f"  Attempt {attempt + 1} failed: {str(e)}. Retrying in {delay} seconds...")
@@ -122,7 +124,7 @@ def generate_ocr_for_image(
 
 def generate_ground_truth(
     sample_dir: str = "dataset/sample/images",
-    output_file: str = "dataset/sample/ground_truth.json",
+    output_file: str = "dataset/sample/ground_truth_openai.json",
     model: str = "gemini-2.5-flash-preview-04-17",
 ):
     """Generate ground truth for all images in the sample directory and save to a JSON file.
@@ -135,8 +137,17 @@ def generate_ground_truth(
     Returns:
         Dictionary of image filenames to OCR results
     """
-    client = genai.Client(
-        api_key=os.environ.get("GEMINI_API_KEY"),
+    # Get API key from environment variable
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "GEMINI_API_KEY environment variable not found. "
+            "Please set it in your .env file or directly in your environment."
+        )
+
+    # Create OpenAI client with Gemini compatibility
+    client = OpenAI(
+        api_key=api_key, base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
     )
 
     results = {}
@@ -149,7 +160,7 @@ def generate_ground_truth(
     images = list(sample_path.glob("*.png"))
     total_images = len(images)
 
-    print(f"Using model: {model}")
+    print(f"Using model: {model} via OpenAI compatibility API")
     print(f"Found {total_images} images in {sample_dir}")
     print(f"Results will be saved to: {output_file}")
 

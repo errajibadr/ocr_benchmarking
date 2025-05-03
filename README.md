@@ -1,103 +1,102 @@
 # OCR Benchmarking
 
-A proof-of-concept project to benchmark various OCR (Optical Character Recognition) techniques on scanned document datasets.
+This repository contains scripts to benchmark different OCR (Optical Character Recognition) methods against a ground truth dataset generated using Gemini 2.5 Flash.
 
-## Datasets used 
+## Quick Start with Google Colab
 
-OCR datasets repository : https://github.com/xinke-wang/OCRDatasets?tab=readme-ov-file
-this project Dataset : https://guillaumejaume.github.io/FUNSD/download/
+The easiest way to run the comparison is with Google Colab:
 
-## Project Overview
+1. Open the notebook in Google Colab: [Open in Colab](https://colab.research.google.com)
+2. Upload the notebook file `ocr_benchmarking.ipynb` to Colab
+3. Follow the instructions in the notebook to upload your dataset
 
-This project evaluates and compares different OCR methods:
-
-1. Traditional OCR libraries:
-   - Tesseract
-   - EasyOCR
-   - PaddleOCR
-
-2. Vision Language Models (VLMs):
-   - Qwen-2.5-VL
-   - OlmOCR
-   - Mistral OCR
-   - Google Gemini Flash
-
-The project takes a phased approach, exploring one OCR method at a time to thoroughly evaluate its performance, resource requirements, and privacy implications.
-
-## Key Features
-
-- Standardized benchmarking framework for fair comparison
-- Privacy-first approach with preference for local processing
-- Comprehensive metrics collection (accuracy, speed, resource usage)
-- Modular architecture allowing easy addition of new OCR methods
-
-## Setup Instructions
+## Local Setup
 
 ### Prerequisites
 
-- Python 3.12+
-- macOS environment (for local testing)
-- Google Colab account (for GPU acceleration testing)
+- Python 3.8+
+- Required libraries (install with `pip install -r requirements.txt`)
+- Tesseract OCR installed on your system
 
 ### Installation
 
-1. Clone the repository:
-   ```
+1. Clone this repository:
+   ```bash
    git clone https://github.com/yourusername/ocr_benchmarking.git
    cd ocr_benchmarking
    ```
 
-2. Create and activate a virtual environment:
-   ```
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. Install dependencies using uv:
-   ```
-   pip install uv
-   uv pip install -e .
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
    ```
 
-### Dataset Setup
+3. Ensure you have Tesseract OCR installed:
+   - **Linux**: `apt-get install tesseract-ocr`
+   - **MacOS**: `brew install tesseract`
+   - **Windows**: Download from [GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
 
-Place your scanned document images in the following directories:
-- `dataset/training_data/` - For training and calibration
-- `dataset/testing_data/` - For benchmark evaluation
+## Dataset Structure
 
-## Usage
+The sample dataset should be organized as follows:
 
-Each OCR method has its own module and can be run independently:
+```
+dataset/
+  sample/
+    images/
+      image1.png
+      image2.png
+      ...
+    ground_truth.json
+```
+
+The `ground_truth.json` file maps image filenames to the text extracted by Gemini 2.5 Flash.
+
+## OCR Methods Included
+
+This benchmark compares the following OCR methods:
+
+1. **Tesseract OCR** - Traditional open-source OCR engine
+2. **EasyOCR** - Deep learning based OCR
+3. **PaddleOCR** - Efficient OCR system by Baidu
+4. **Keras-OCR** - Packaged OCR based on CRAFT text detector and Keras CRNN recognizer
+
+## Running the Benchmark
+
+```bash
+python run_benchmark.py
+```
+
+Or, if you'd like to use specific OCR methods:
+
+```bash
+python run_benchmark.py --methods tesseract easyocr
+```
+
+## Adding Your Own OCR Methods
+
+To add a new OCR method, edit the `ocr_methods.py` file and add a new function:
 
 ```python
-from src.benchmark.runner import BenchmarkRunner
-from src.ocr.traditional.tesseract import TesseractProcessor
-
-# Run benchmark on Tesseract
-runner = BenchmarkRunner()
-results = runner.run(TesseractProcessor(), dataset_path="dataset/testing_data/")
-runner.visualize_results(results)
+def ocr_your_method(image_path: str) -> str:
+    """Extract text from image using your method"""
+    # Your implementation here
+    return extracted_text
 ```
 
-## Project Structure
+Then add it to the `OCR_METHODS` dictionary at the bottom of the file.
 
-```
-ocr_benchmarking/
-├── dataset/                # Document images for benchmarking
-│   ├── training_data/      # Training dataset samples
-│   └── testing_data/       # Testing dataset samples
-├── memory_bank/            # Project memory and context
-├── src/
-│   ├── benchmark/          # Benchmarking framework
-│   ├── ocr/                # OCR implementation modules
-│   │   ├── traditional/    # Traditional OCR methods
-│   │   └── vlm/            # Vision Language Model methods
-│   └── utils/              # Shared utilities
-├── notebooks/              # Jupyter notebooks for experiments
-├── results/                # Benchmark results
-└── tests/                  # Unit tests
-```
+## Evaluation Metrics
 
-## License
+The benchmark evaluates OCR methods using:
 
-MIT
+1. **Text similarity** - How close the extracted text is to the ground truth
+2. **Processing time** - How long each method takes to process images
+3. **Success rate** - Percentage of images successfully processed
+
+## Outputs
+
+Results are saved in the `results/` directory:
+- JSON files with extracted text for each method
+- Visualization plots comparing performance metrics
+- Similarity scores compared to ground truth
