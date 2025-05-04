@@ -24,6 +24,8 @@
 - Enhanced visualization with multi-metric comparison and summary tables
 - Added JSON export of evaluation metrics
 - Fixed data type handling in visualization code
+- Added OCR results saving and loading functionality to avoid reprocessing images
+- Implemented command-line arguments for loading/evaluating saved results
 
 ## Tesseract OCR Implementation (Completed)
 - Implemented Tesseract OCR adapter
@@ -55,6 +57,25 @@
 - Benchmarked against other OCR methods
 - Documented setup and usage instructions
 
+## MMOCR Implementation (Added)
+- Implemented MMOCR adapter
+- Used PyTorch-based detection and recognition models
+- Added error handling for missing dependencies
+- Documented special installation requirements
+- Added to OCR methods collection
+
+## DocTR Implementation (Added)
+- Implemented DocTR adapter from Hugging Face
+- Added support for document text recognition
+- Added error handling for missing dependencies
+- Updated requirements and documentation
+
+## Cloud OCR Services (Prepared)
+- Implemented Azure Computer Vision adapter
+- Implemented Amazon Textract adapter
+- Added configuration instructions for API keys
+- Preserved privacy-first approach with opt-in usage
+
 ## Next Implementation Milestone: VLM Integration Planning
 - Research self-hosting requirements for VLM models
 - Evaluate data privacy considerations for each VLM option
@@ -69,6 +90,9 @@
 - EasyOCR Phase: 100% complete
 - PaddleOCR Phase: 100% complete
 - Keras-OCR Phase: 100% complete
+- MMOCR Phase: 100% complete
+- DocTR Phase: 100% complete
+- Cloud OCR Services: 100% complete
 - VLM Integration Planning: 0% complete
 
 ## Implementation Notes
@@ -84,3 +108,7 @@
 - Fixed data type handling in table visualization code
 - Improved Google Colab compatibility with proper notebook formatting
 - Updated README with clearer instructions for both local and Colab usage 
+- Added OCR results persistence to separate processing from evaluation
+- Implemented loading of saved results to avoid reprocessing images
+- Expanded OCR method collection with additional state-of-the-art libraries
+- Added cloud OCR services with privacy-respecting configuration 

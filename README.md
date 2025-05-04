@@ -35,7 +35,13 @@ The easiest way to run the comparison is with Google Colab:
    pip install -r requirements.txt
    ```
 
-3. Ensure you have Tesseract OCR installed:
+3. For MMOCR (optional):
+   ```bash
+   pip install -U openmim
+   mim install mmocr
+   ```
+
+4. Ensure you have Tesseract OCR installed:
    - **Linux**: `apt-get install tesseract-ocr`
    - **MacOS**: `brew install tesseract`
    - **Windows**: Download from [GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
@@ -64,6 +70,12 @@ This benchmark compares the following OCR methods:
 2. **EasyOCR** - Deep learning based OCR
 3. **PaddleOCR** - Efficient OCR system by Baidu
 4. **Keras-OCR** - Packaged OCR based on CRAFT text detector and Keras CRNN recognizer
+5. **MMOCR** - PyTorch-based OCR toolkit from OpenMMLab
+6. **DocTR** - Document Text Recognition from Hugging Face
+
+Additionally, the repository includes adapters for the following cloud OCR services (requires API keys):
+- **Azure Computer Vision Read API** - Microsoft's OCR service
+- **Amazon Textract** - AWS OCR service for documents
 
 ## Evaluation Metrics
 
@@ -78,15 +90,35 @@ The benchmark evaluates OCR methods using:
 
 ## Running the Benchmark
 
+Simple usage:
 ```bash
 python run_benchmark.py
 ```
 
-Or, if you'd like to use specific OCR methods:
+With specific OCR methods:
+```bash
+python run_benchmark.py --methods tesseract easyocr paddleocr doctr mmocr
+```
+
+### Saving and Loading OCR Results
+
+You can save OCR results to avoid reprocessing images:
 
 ```bash
-python run_benchmark.py --methods tesseract easyocr
+# Process images and save results
+python run_benchmark.py --save-results --results-file my_results.json
+
+# Load saved results and evaluate
+python run_benchmark.py --load-results --results-file my_results.json
+
+# Evaluate only (same as --load-results)
+python run_benchmark.py --eval-only --results-file my_results.json
 ```
+
+This is useful for:
+- Running different evaluations on the same OCR results
+- Sharing OCR results with others without sharing the original images
+- Comparing different OCR implementations without reprocessing images
 
 ## Adding Your Own OCR Methods
 
@@ -101,10 +133,30 @@ def ocr_your_method(image_path: str) -> str:
 
 Then add it to the `OCR_METHODS` dictionary at the bottom of the file.
 
+## Cloud OCR Services Configuration
+
+To use cloud OCR services, set the required environment variables:
+
+### Azure Computer Vision
+```bash
+export AZURE_VISION_KEY="your_api_key"
+export AZURE_VISION_ENDPOINT="your_endpoint"
+```
+
+### Amazon Textract
+```bash
+export AWS_ACCESS_KEY_ID="your_access_key"
+export AWS_SECRET_ACCESS_KEY="your_secret_key"
+export AWS_REGION_NAME="your_region"
+```
+
+Then uncomment the relevant lines in the `OCR_METHODS` dictionary in `ocr_methods.py`.
+
 ## Outputs
 
 Results are saved in the `results/` directory:
-- JSON files with extracted text for each method
+- Individual JSON files with extracted text for each method
+- Complete OCR results with extracted text and processing times (when using `--save-results`)
 - Visualization plots comparing performance metrics
 - Similarity scores compared to ground truth
 - A summary table highlighting the best-performing methods

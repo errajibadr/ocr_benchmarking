@@ -705,6 +705,62 @@ print("\nCreating visualizations...")
 visualize_results(evaluation)
 
 # %% [markdown]
+# ## Save and Load OCR Results
+# 
+# You can save the OCR results to reload them later without having to reprocess the images:
+
+# %%
+# Save complete OCR results for later use
+from dataclasses import asdict
+
+def save_ocr_results(results, output_dir="results", filename="ocr_results.json"):
+    """Save complete OCR results (including processing times) to a single JSON file"""
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, filename)
+    
+    # Convert OCRResult objects to dictionaries
+    results_dict = {result.method_name: asdict(result) for result in results}
+    
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(results_dict, f, indent=2, ensure_ascii=False)
+    
+    print(f"Saved complete OCR results to {output_file}")
+
+def load_ocr_results(input_file="results/ocr_results.json"):
+    """Load OCR results from a JSON file"""
+    with open(input_file, "r", encoding="utf-8") as f:
+        results_dict = json.load(f)
+    
+    # Convert dictionaries back to OCRResult objects
+    results = []
+    for method_name, result_data in results_dict.items():
+        # Ensure method_name is consistent
+        if result_data["method_name"] != method_name:
+            result_data["method_name"] = method_name
+            
+        results.append(OCRResult(**result_data))
+    
+    print(f"Loaded OCR results for {len(results)} methods from {input_file}")
+    return results
+
+# Save current results for later use
+save_ocr_results(results)
+
+# %% [markdown]
+# To reload the results later and evaluate them:
+# 
+# ```python
+# # Load previously saved results
+# loaded_results = load_ocr_results("results/ocr_results.json")
+# 
+# # Re-evaluate with the loaded results
+# evaluation = evaluate_results(loaded_results, ground_truth)
+# 
+# # Visualize the results again
+# visualize_results(evaluation)
+# ```
+
+# %% [markdown]
 # ## Text Quality Comparison
 # 
 # Let's compare the actual extracted text for a single image:

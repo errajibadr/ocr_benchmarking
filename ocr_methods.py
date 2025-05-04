@@ -3,8 +3,12 @@
 OCR Methods - Collection of different OCR implementations for comparison
 """
 
+import base64
+import os
+import time
+from typing import Any, Dict, List, Optional
 
-# 1. Tesseract OCR
+
 def ocr_tesseract(image_path: str) -> str:
     """Extract text from image using Tesseract OCR
 
@@ -76,7 +80,7 @@ def ocr_paddleocr(image_path: str) -> str:
     return text
 
 
-# 4. Azure OCR (Uncomment and fill API key if available)
+# 5. Microsoft Azure Read API
 def ocr_azure(image_path: str) -> str:
     """Extract text from image using Azure Computer Vision OCR
 
@@ -140,47 +144,6 @@ def ocr_azure(image_path: str) -> str:
     return "Error: OCR operation failed or timed out"
 
 
-# 5. Google Cloud Vision OCR
-def ocr_google_vision(image_path: str) -> str:
-    """Extract text from image using Google Cloud Vision OCR
-
-    Installation: !pip install google-cloud-vision
-
-    Note: Requires Google Cloud credentials. Set as environment variable:
-    import os
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "path/to/credentials.json"
-    """
-    import os
-
-    from google.cloud import vision
-
-    # Check for credentials
-    if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
-        return "ERROR: Google Cloud credentials not set"
-
-    # Initialize client
-    client = vision.ImageAnnotatorClient()
-
-    # Read image file
-    with open(image_path, "rb") as image_file:
-        content = image_file.read()
-
-    # Create image object
-    image = vision.Image(content=content)
-
-    # Perform text detection
-    response = client.text_detection(image=image)
-
-    # Extract text
-    if response.error.message:
-        return f"ERROR: {response.error.message}"
-
-    # Get full text annotation
-    text = response.text_annotations[0].description if response.text_annotations else ""
-
-    return text
-
-
 # 6. Amazon Textract OCR
 def ocr_amazon_textract(image_path: str) -> str:
     """Extract text from image using Amazon Textract
@@ -197,20 +160,19 @@ def ocr_amazon_textract(image_path: str) -> str:
 
     import boto3
 
-    # Check for credentials
-    if not (
-        os.environ.get("AWS_ACCESS_KEY_ID")
-        and os.environ.get("AWS_SECRET_ACCESS_KEY")
-        and os.environ.get("AWS_REGION_NAME")
-    ):
-        return "ERROR: AWS credentials not set"
-
+    # # Check for credentials
+    # if not (
+    #     os.environ.get("AWS_ACCESS_KEY_ID")
+    #     and os.environ.get("AWS_SECRET_ACCESS_KEY")
+    #     and os.environ.get("AWS_REGION_NAME")
+    # ):
+    #     return "ERROR: AWS credentials not set"
     # Initialize client
     client = boto3.client(
         "textract",
-        region_name=os.environ.get("AWS_REGION_NAME"),
-        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        # region_name=os.environ.get("AWS_REGION_NAME"),
+        # aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+        # aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
     )
 
     # Read image file
@@ -229,58 +191,7 @@ def ocr_amazon_textract(image_path: str) -> str:
     return "\n".join(text_lines)
 
 
-# 7. OCRSpace API
-def ocr_ocrspace(image_path: str) -> str:
-    """Extract text from image using OCRSpace API
-
-    Installation: !pip install requests
-
-    Note: Requires OCRSpace API key. Set as environment variable:
-    import os
-    os.environ["OCRSPACE_API_KEY"] = "your_api_key"
-    """
-    import os
-
-    import requests
-
-    # Check for API key
-    api_key = os.environ.get("OCRSPACE_API_KEY")
-    if not api_key:
-        return "ERROR: OCRSpace API key not set"
-
-    # Endpoint URL
-    url = "https://api.ocr.space/parse/image"
-
-    # Prepare payload
-    payload = {
-        "apikey": api_key,
-        "language": "eng",
-        "isOverlayRequired": True,
-    }
-
-    # Prepare files
-    files = {"image": open(image_path, "rb")}
-
-    # Send request
-    response = requests.post(url, files=files, data=payload)
-
-    # Check for success
-    if response.status_code != 200:
-        return f"ERROR: API request failed with status code {response.status_code}"
-
-    # Parse response
-    json_data = response.json()
-
-    if not json_data.get("ParsedResults"):
-        return "ERROR: No parsed results in API response"
-
-    # Extract text
-    text = json_data["ParsedResults"][0]["ParsedText"]
-
-    return text
-
-
-# 8. Keras OCR (for simple text detection)
+# 7. Keras OCR (for simple text detection)
 def ocr_kerasocr(image_path: str) -> str:
     """Extract text from image using Keras OCR
 
@@ -333,14 +244,173 @@ def ocr_kerasocr(image_path: str) -> str:
     return "\n".join(lines)
 
 
+# 8. DocTR (from Hugging Face)
+def ocr_doctr(image_path: str) -> str:
+    """Extract text from image using DocTR from Hugging Face
+
+    Installation: !pip install python-doctr
+    """
+    try:
+        from doctr.io import DocumentFile
+        from doctr.models import ocr_predictor
+    except ImportError:
+        return "ERROR: DocTR not installed. Run: pip install python-doctr"
+
+    # Load the document
+    doc = DocumentFile.from_images(image_path)
+
+    # Load model
+    model = ocr_predictor(pretrained=True)
+
+    # Analyze
+    result = model(doc)
+
+    # Extract text
+    text = result.render()
+
+    return text
+
+
+def encode_image(image_path: str) -> str:
+    """Encode image to base64 string."""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+
+def ocr_llm_base(image_path: str, model_name: str) -> str:
+    """Base function for LLM-based OCR methods using OpenRouter.
+
+    Args:
+        image_path: Path to the image file
+        model_name: Name of the model to use
+
+    Returns:
+        Extracted text from the image
+    """
+    try:
+        from openai import OpenAI
+        from pydantic import BaseModel, Field
+    except ImportError:
+        return "ERROR: Required packages not installed. Run: pip install openai pydantic"
+
+    # Get API key from environment variable
+    openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+    if not openrouter_api_key:
+        return "ERROR: OpenRouter API key not set in environment variables"
+
+    # Create OpenAI client with OpenRouter compatibility
+    client = OpenAI(
+        api_key=openrouter_api_key,
+        base_url="https://openrouter.ai/api/v1",
+    )
+
+    # Define the OCR result schema
+    class OCRResult(BaseModel):
+        markdown: str = Field(
+            description="The extracted text from the image with proper formatting"
+        )
+        category: str = Field(
+            description="The category of the document (e.g., invoice, receipt, form, letter, article)"
+        )
+        tags: List[str] = Field(description="The tags relevant to the document content")
+
+    # Encode the image to base64
+    image_data = encode_image(image_path)
+
+    max_retries = 3
+    delay = 2
+
+    for attempt in range(max_retries):
+        try:
+            response = client.beta.chat.completions.parse(
+                model=model_name,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Generate OCRs with Markdowns and correctly formatted layout when possible",
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Extract all text from this image with proper formatting. Also identify the document category and provide relevant tags.",
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/png;base64,{image_data}"},
+                            },
+                        ],
+                    },
+                ],
+                response_format=OCRResult,  # type: ignore
+            )
+
+            # Parse the JSON response
+            result = response.choices[0].message.parsed
+
+            if not result:
+                return ""
+
+            # Return the extracted text
+            return result.markdown
+
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(delay)
+            else:
+                return f"ERROR: {str(e)}"
+
+    return "ERROR: Maximum retries exceeded"
+
+
+def ocr_qwen32ocr(image_path: str) -> str:
+    """Extract text from image using Qwen 2.5 VL 32B Instruct model via OpenRouter.
+
+    Installation: !pip install openai python-dotenv
+
+    Note: Requires OpenRouter API key. Set as environment variable:
+    import os
+    os.environ["OPENROUTER_API_KEY"] = "your_key"
+    """
+    return ocr_llm_base(image_path, "qwen/qwen2.5-vl-32b-instruct")
+
+
+def ocr_pixtral(image_path: str) -> str:
+    """Extract text from image using Claude 3.5 Sonnet model via OpenRouter.
+
+    Installation: !pip install openai python-dotenv
+
+    Note: Requires OpenRouter API key. Set as environment variable:
+    import os
+    os.environ["OPENROUTER_API_KEY"] = "your_key"
+    """
+    return ocr_llm_base(image_path, "mistralai/pixtral-12b")
+
+
+def ocr_mistral(image_path: str) -> str:
+    """Extract text from image using Mistral 3.1 model via OpenRouter.
+
+    Installation: !pip install openai python-dotenv
+
+    Note: Requires OpenRouter API key. Set as environment variable:
+    import os
+    os.environ["OPENROUTER_API_KEY"] = "your_key"
+    """
+    return ocr_llm_base(image_path, "mistralai/mistral-small-3.1-24b-instruct")
+
+
 # Dictionary mapping method names to functions
 OCR_METHODS = {
     "tesseract": ocr_tesseract,
     "easyocr": ocr_easyocr,
     "paddleocr": ocr_paddleocr,
-    # "azure": ocr_azure,  # Uncomment if Azure credentials are available
-    # "google_vision": ocr_google_vision,  # Uncomment if Google Cloud credentials are available
-    # "amazon_textract": ocr_amazon_textract,  # Uncomment if AWS credentials are available
-    # "ocrspace": ocr_ocrspace,  # Uncomment if OCRSpace API key is available
     "kerasocr": ocr_kerasocr,
+    "doctr": ocr_doctr,
+    # Uncomment if you have API keys/credentials:
+    # "azure": ocr_azure,
+    "amazon_textract": ocr_amazon_textract,
+    "qwen32": ocr_qwen32ocr,
+    "pixtral": ocr_pixtral,
+    "mistral": ocr_mistral,
 }

@@ -11,6 +11,13 @@ easyocr>=1.6.0
 paddlepaddle>=2.4.0
 paddleocr>=2.6.0
 keras-ocr>=0.8.9
+python-doctr>=0.6.0
+# mmocr requires separate installation with many dependencies
+# pip install -U openmim && mim install mmocr
+
+# Optional dependencies for cloud OCR services
+# azure-cognitiveservices-vision-computervision>=0.9.0
+# boto3>=1.26.0
 
 # Optional dependencies for Colab notebook
 jupyter>=1.0.0

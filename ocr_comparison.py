@@ -7,9 +7,9 @@ import json
 import os
 import pathlib
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -302,8 +302,8 @@ def evaluate_results(results: List[OCRResult], ground_truth: Dict[str, str]) -> 
     return evaluation
 
 
-def save_results(results: List[OCRResult], output_dir: str = "results"):
-    """Save OCR results to json files"""
+def save_extracted_text(results: List[OCRResult], output_dir: str = "results"):
+    """Save OCR extracted text results to json files"""
     os.makedirs(output_dir, exist_ok=True)
 
     for result in results:
@@ -312,7 +312,61 @@ def save_results(results: List[OCRResult], output_dir: str = "results"):
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(result.extracted_text, f, indent=2, ensure_ascii=False)
 
-        print(f"Saved results for {result.method_name} to {output_file}")
+        print(f"Saved extracted text for {result.method_name} to {output_file}")
+
+
+def save_ocr_results(
+    results: List[OCRResult], output_dir: str = "results", filename: str = "ocr_results.json"
+):
+    """Save complete OCR results (including processing times) to a single JSON file
+
+    This allows the results to be loaded later for evaluation without reprocessing images.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, filename)
+
+    # Convert OCRResult objects to dictionaries
+    results_dict = {result.method_name: asdict(result) for result in results}
+
+    # If file exists, update it with new results
+    if os.path.exists(output_file):
+        try:
+            with open(output_file, "r", encoding="utf-8") as f:
+                existing_results = json.load(f)
+
+            # Update existing results with new ones
+            existing_results.update(results_dict)
+            results_dict = existing_results
+            print(f"Updated existing OCR results in {output_file}")
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Error reading existing file, creating new one: {e}")
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(results_dict, f, indent=2, ensure_ascii=False)
+
+    print(f"Saved complete OCR results to {output_file}")
+
+
+def load_ocr_results(input_file: str = "results/ocr_results.json") -> List[OCRResult]:
+    """Load OCR results from a JSON file
+
+    This allows previously processed results to be loaded for evaluation without
+    reprocessing images.
+    """
+    with open(input_file, "r", encoding="utf-8") as f:
+        results_dict = json.load(f)
+
+    # Convert dictionaries back to OCRResult objects
+    results = []
+    for method_name, result_data in results_dict.items():
+        # Ensure method_name is consistent
+        if result_data["method_name"] != method_name:
+            result_data["method_name"] = method_name
+
+        results.append(OCRResult(**result_data))
+
+    print(f"Loaded OCR results for {len(results)} methods from {input_file}")
+    return results
 
 
 def visualize_results(evaluation: Dict, output_dir: str = "results"):
