@@ -87,12 +87,8 @@ def main():
     """Main entry point for benchmark runner"""
     args = parse_args()
 
-    # Check for evaluation-only mode
-    if args.eval_only:
-        args.load_results = True
-
     # Check if loading previous results
-    if args.load_results:
+    if args.eval_only:
         results_path = os.path.join(args.output_dir, args.results_file)
         if not os.path.exists(results_path):
             print(f"Error: Results file {results_path} does not exist")

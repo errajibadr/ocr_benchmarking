@@ -152,6 +152,8 @@ Run the benchmark with selected OCR methods:
 make benchmark METHODS="tesseract easyocr paddleocr"
 ```
 
+This will automatically save the results to a file named based on your sample directory (e.g., `results/result_sample_test.json`).
+
 ### Extracting Text Only (Without Evaluation)
 
 If you just want to extract text from images without evaluating against a ground truth:
@@ -172,6 +174,37 @@ This is useful when you want to:
 - Process images with OCR methods without having ground truth available
 - Generate OCR results to share with others
 - Batch process a set of images with multiple OCR methods
+
+### Evaluating Results
+
+To evaluate previously saved results against a ground truth:
+
+```bash
+make eval
+```
+
+By default, this uses the results file based on your sample directory name. You can specify a different sample directory or results file:
+
+```bash
+# Evaluate results for a specific sample directory
+make eval SAMPLE_DIR="dataset/my_custom_sample"
+
+# Evaluate a specific results file against the ground truth
+make eval RESULT_FILE="result_custom.json"
+```
+
+To evaluate against VLM-generated ground truth instead:
+
+```bash
+make eval-vlm
+```
+
+The same options apply for specifying custom sample directories or result files:
+
+```bash
+make eval-vlm SAMPLE_DIR="dataset/my_custom_sample"
+make eval-vlm RESULT_FILE="result_custom.json"
+```
 
 ### Full Pipeline
 
@@ -225,14 +258,90 @@ python run_benchmark.py --eval-only --results-file my_results.json
 
 ## Evaluation Metrics
 
-The benchmark evaluates OCR methods using:
+The benchmark evaluates OCR methods using several complementary metrics to provide a comprehensive understanding of performance:
 
-1. **Text similarity** - How similar the extracted text is to the ground truth using SequenceMatcher
-2. **Word Error Rate (WER)** - Measures the edit distance between words (lower is better)
-3. **Character Error Rate (CER)** - Measures the edit distance between characters (lower is better) 
-4. **Common Word Accuracy** - Percentage of reference words that appear in the extracted text
-5. **Processing time** - How long each method takes to process images
-6. **Success rate** - Percentage of images successfully processed
+### Text Similarity
+
+**Description**: Measures how similar the extracted text is to the ground truth using Python's `difflib.SequenceMatcher`.
+
+**Calculation**: The ratio of matching elements to the total number of elements in both sequences, returning a value between 0.0 (no similarity) and 1.0 (perfect match).
+
+**Use case**: Provides a general measure of overall text similarity that accounts for additions, deletions, and substitutions.
+
+### Word Error Rate (WER)
+
+**Description**: A common metric in speech recognition and OCR that measures the edit distance between words.
+
+**Calculation**: Calculated as:
+```
+WER = (S + D + I) / N
+```
+Where:
+- S = number of substituted words
+- D = number of deleted words
+- I = number of inserted words
+- N = total number of words in the reference text
+
+**Use case**: Lower is better. WER is particularly useful for assessing how many word-level corrections would be needed to transform the OCR output into the ground truth.
+
+### Character Error Rate (CER)
+
+**Description**: Similar to WER but at the character level, which provides finer-grained assessment.
+
+**Calculation**: Calculated as:
+```
+CER = (S + D + I) / N
+```
+Where:
+- S = number of substituted characters
+- D = number of deleted characters
+- I = number of inserted characters
+- N = total number of characters in the reference text
+
+**Use case**: Lower is better. CER is useful for languages where word boundaries are not clear or when character-level accuracy is important.
+
+### Common Word Accuracy
+
+**Description**: Percentage of reference words that appear in the extracted text.
+
+**Calculation**: The ratio of words from the ground truth that appear in the OCR output, regardless of order or frequency.
+
+**Use case**: Useful for scenarios where the presence of key terms is more important than their exact positioning or order.
+
+### Processing Time
+
+**Description**: How long each method takes to process images.
+
+**Calculation**: Measured in seconds per image.
+
+**Use case**: Important for real-time applications or when processing large volumes of documents.
+
+
+## Interpreting Results
+
+When interpreting the benchmark results, consider:
+
+1. **Task-specific priorities**: For some applications, accuracy might be more important than speed, while for others, the inverse might be true.
+
+2. **Document type sensitivity**: Some OCR methods perform better on certain document types (handwritten, printed, forms, etc.).
+
+3. **Language considerations**: Performance can vary significantly depending on the language and script.
+
+4. **Error patterns**: Look beyond the raw metrics to understand the types of errors each method makes.
+
+5. **Ground truth quality**: Remember that the evaluation is only as good as the ground truth it's compared against. FUNSD annotations and VLM-generated ground truths may have different characteristics.
+
+## Visualization
+
+The benchmark generates several visualizations to help interpret results:
+
+1. **Comparison charts**: Bar charts comparing all OCR methods across each metric.
+
+2. **Heatmaps**: Show where each method excels or struggles.
+
+3. **Time vs. Accuracy plots**: Help identify optimal methods balancing speed and accuracy.
+
+4. **Per-image results**: Detailed metrics for each image to identify patterns based on document type or complexity.
 
 ## Adding Your Own OCR Methods
 

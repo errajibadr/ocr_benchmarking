@@ -4,7 +4,7 @@
 SEED := 42
 SAMPLE_SIZE := 10
 SOURCE_DIR := dataset/testing_data
-SAMPLE_DIR := dataset/sample_test
+SAMPLE_DIR := dataset/sample
 METHODS := tesseract
 VERTICAL_TOLERANCE := 15
 VLM_MODEL := google/gemini-2.5-flash-preview
@@ -77,12 +77,12 @@ benchmark:
 # Evaluate saved results
 .PHONY: eval
 eval:
-	$(PYTHON) run_benchmark.py --eval-only --ground-truth $(SAMPLE_DIR)/ground_truth.json
+	$(PYTHON) run_benchmark.py --eval-only --ground-truth $(SAMPLE_DIR)/ground_truth.json --results-file $(RESULT_FILE)
 
 # Evaluate against VLM ground truth
 .PHONY: eval-vlm
 eval-vlm:
-	$(PYTHON) run_benchmark.py --eval-only --ground-truth $(SAMPLE_DIR)/ground_truth_vlm.json
+	$(PYTHON) run_benchmark.py --eval-only --ground-truth $(SAMPLE_DIR)/ground_truth_vlm.json --results-file $(RESULT_FILE)
 
 # Clean generated files
 .PHONY: clean

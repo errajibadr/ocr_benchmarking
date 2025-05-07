@@ -103,68 +103,68 @@ def ocr_paddleocr(image_path: str) -> str:
     return text
 
 
-# 5. Microsoft Azure Read API
-def ocr_azure(image_path: str) -> str:
-    """Extract text from image using Azure Computer Vision OCR
+# # 5. Microsoft Azure Read API
+# def ocr_azure(image_path: str) -> str:
+#     """Extract text from image using Azure Computer Vision OCR
 
-    Installation: !pip install azure-cognitiveservices-vision-computervision
+#     Installation: !pip install azure-cognitiveservices-vision-computervision
 
-    Note: Requires Azure Computer Vision API key. Set as environment variable:
-    import os
-    os.environ["AZURE_VISION_KEY"] = "your_key"
-    os.environ["AZURE_VISION_ENDPOINT"] = "your_endpoint"
-    """
-    import os
-    import time
+#     Note: Requires Azure Computer Vision API key. Set as environment variable:
+#     import os
+#     os.environ["AZURE_VISION_KEY"] = "your_key"
+#     os.environ["AZURE_VISION_ENDPOINT"] = "your_endpoint"
+#     """
+#     import os
+#     import time
 
-    from azure.cognitiveservices.vision.computervision import ComputerVisionClient
-    from azure.cognitiveservices.vision.computervision.models import (
-        OperationStatusCodes,
-    )
-    from msrest.authentication import CognitiveServicesCredentials
+#     from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+#     from azure.cognitiveservices.vision.computervision.models import (
+#         OperationStatusCodes,
+#     )
+#     from msrest.authentication import CognitiveServicesCredentials
 
-    # Get credentials
-    key = os.environ.get("AZURE_VISION_KEY")
-    endpoint = os.environ.get("AZURE_VISION_ENDPOINT")
+#     # Get credentials
+#     key = os.environ.get("AZURE_VISION_KEY")
+#     endpoint = os.environ.get("AZURE_VISION_ENDPOINT")
 
-    if not key or not endpoint:
-        return "ERROR: Azure Vision API key or endpoint not set"
+#     if not key or not endpoint:
+#         return "ERROR: Azure Vision API key or endpoint not set"
 
-    # Authenticate client
-    client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(key))
+#     # Authenticate client
+#     client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(key))
 
-    # Read image
-    with open(image_path, "rb") as image_file:
-        read_response = client.read_in_stream(image_file, raw=True)
+#     # Read image
+#     with open(image_path, "rb") as image_file:
+#         read_response = client.read_in_stream(image_file, raw=True)
 
-    # Get operation ID
-    operation_id = read_response.headers["Operation-Location"].split("/")[-1]
+#     # Get operation ID
+#     operation_id = read_response.headers["Operation-Location"].split("/")[-1]
 
-    # Wait for operation to complete
-    max_retries = 10
-    sleep_time = 1
-    result = None
+#     # Wait for operation to complete
+#     max_retries = 10
+#     sleep_time = 1
+#     result = None
 
-    for i in range(max_retries):
-        read_result = client.get_read_result(operation_id)
-        if read_result.status not in [
-            OperationStatusCodes.running,
-            OperationStatusCodes.not_started,
-        ]:
-            result = read_result
-            break
-        time.sleep(sleep_time)
+#     for i in range(max_retries):
+#         read_result = client.get_read_result(operation_id)
+#         if read_result.status not in [
+#             OperationStatusCodes.running,
+#             OperationStatusCodes.not_started,
+#         ]:
+#             result = read_result
+#             break
+#         time.sleep(sleep_time)
 
-    # Check for success and extract text
-    if result and result.status == OperationStatusCodes.succeeded:
-        text_lines = []
-        for text_result in result.analyze_result.read_results:
-            for line in text_result.lines:
-                text_lines.append(line.text)
+#     # Check for success and extract text
+#     if result and result.status == OperationStatusCodes.succeeded:
+#         text_lines = []
+#         for text_result in result.analyze_result.read_results:
+#             for line in text_result.lines:
+#                 text_lines.append(line.text)
 
-        return "\n".join(text_lines)
+#         return "\n".join(text_lines)
 
-    return "Error: OCR operation failed or timed out"
+#     return "Error: OCR operation failed or timed out"
 
 
 # 6. Amazon Textract OCR
@@ -423,6 +423,17 @@ def ocr_mistral(image_path: str) -> str:
     return ocr_llm_base(image_path, "mistralai/mistral-small-3.1-24b-instruct")
 
 
+def ocr_gemini(image_path: str) -> str:
+    """Extract text from image using Gemini 2.5 Flash model via OpenRouter.
+
+    Installation: !pip install openai python-dotenv
+
+    Note: Requires OpenRouter API key. Set as environment variable:
+    import os
+    """
+    return ocr_llm_base(image_path, "google/gemini-2.5-flash-preview")
+
+
 # Dictionary mapping method names to functions
 OCR_METHODS = {
     "docling": ocr_docling,
@@ -437,4 +448,5 @@ OCR_METHODS = {
     "qwen32": ocr_qwen32ocr,
     "pixtral": ocr_pixtral,
     "mistral": ocr_mistral,
+    "gemini": ocr_gemini,
 }
