@@ -2,6 +2,24 @@
 
 This repository contains scripts to benchmark different OCR (Optical Character Recognition) methods against a ground truth dataset generated using Gemini 2.5 Flash.
 
+## Dataset Structure
+
+The sample dataset should be organized as follows:
+
+```
+dataset/
+  sample/
+    images/
+      image1.png
+      image2.png
+      ...
+    ground_truth.json
+```
+
+The `ground_truth.json` file maps image filenames to the text extracted by Gemini 2.5 Flash.
+
+
+
 ## Quick Start with Google Colab
 
 The easiest way to run the comparison is with Google Colab:
@@ -46,21 +64,7 @@ The easiest way to run the comparison is with Google Colab:
    - **MacOS**: `brew install tesseract`
    - **Windows**: Download from [GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
 
-## Dataset Structure
 
-The sample dataset should be organized as follows:
-
-```
-dataset/
-  sample/
-    images/
-      image1.png
-      image2.png
-      ...
-    ground_truth.json
-```
-
-The `ground_truth.json` file maps image filenames to the text extracted by Gemini 2.5 Flash.
 
 ## OCR Methods Included
 
@@ -97,7 +101,7 @@ python run_benchmark.py
 
 With specific OCR methods:
 ```bash
-python run_benchmark.py --methods tesseract easyocr paddleocr doctr mmocr
+python run_benchmark.py --methods tesseract easyocr paddleocr 
 ```
 
 ### Saving and Loading OCR Results

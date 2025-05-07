@@ -99,6 +99,9 @@ def generate_ocr_for_image(
                     correctly formatted layout when possible""",
                     response_mime_type="application/json",
                     response_schema=OCRResult,
+                    thinking_config=types.ThinkingConfig(
+                        thinking_budget=1000,
+                    ),
                 ),
             )
 

@@ -6,7 +6,30 @@ OCR Methods - Collection of different OCR implementations for comparison
 import base64
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import List
+
+
+def ocr_docling(image_path: str) -> str:
+    """Extract text from image using Docling OCR
+
+    Installation: !pip install docling
+
+    Args:
+        image_path (str): Path to the image file
+
+    Returns:
+        str: Extracted text from the image in Markdown format, or an error message
+    """
+
+    from docling.document_converter import DocumentConverter
+
+    try:
+        converter = DocumentConverter()
+        result = converter.convert(image_path)
+        # Export to Markdown (as in docling docs)
+        return result.document.export_to_markdown()
+    except Exception as e:
+        return f"ERROR: Docling OCR failed: {str(e)}"
 
 
 def ocr_tesseract(image_path: str) -> str:
@@ -402,6 +425,7 @@ def ocr_mistral(image_path: str) -> str:
 
 # Dictionary mapping method names to functions
 OCR_METHODS = {
+    "docling": ocr_docling,
     "tesseract": ocr_tesseract,
     "easyocr": ocr_easyocr,
     "paddleocr": ocr_paddleocr,
