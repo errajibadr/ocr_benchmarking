@@ -74,6 +74,12 @@ def parse_args():
         help="Skip processing and only run evaluation on previously saved results",
     )
 
+    parser.add_argument(
+        "--skip-eval",
+        action="store_true",
+        help="Skip processing and only save extracted text to file",
+    )
+
     return parser.parse_args()
 
 
@@ -135,20 +141,21 @@ def main():
         print(f"Error: Ground truth file {args.ground_truth} does not exist")
         return 1
 
-    # Load ground truth data
-    print("\nLoading ground truth data...")
-    ground_truth = load_ground_truth(args.ground_truth)
-    print(f"Loaded ground truth for {len(ground_truth)} images")
+    if not args.skip_eval:
+        # Load ground truth data
+        print("\nLoading ground truth data...")
+        ground_truth = load_ground_truth(args.ground_truth)
+        print(f"Loaded ground truth for {len(ground_truth)} images")
 
-    # Evaluate results
-    print("\nEvaluating results...")
-    evaluation = evaluate_results(results, ground_truth)
+        # Evaluate results
+        print("\nEvaluating results...")
+        evaluation = evaluate_results(results, ground_truth)
 
-    # Visualize comparison
-    print("\nCreating visualizations...")
-    visualize_results(evaluation, args.output_dir)
+        # Visualize comparison
+        print("\nCreating visualizations...")
+        visualize_results(evaluation, args.output_dir)
 
-    print(f"\nAll done! Results saved to {args.output_dir}")
+        print(f"\nAll done! Results saved to {args.output_dir}")
     return 0
 
 
