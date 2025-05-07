@@ -24,6 +24,7 @@ dependencies = [
     "python-doctr>=0.11.0",
     "torchvision>=0.22.0",
     "gradio-client>=1.10.0",
+    "ipykernel>=6.29.5",
 ]
 
 [project.optional-dependencies]
