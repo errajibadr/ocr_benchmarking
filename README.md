@@ -152,6 +152,27 @@ Run the benchmark with selected OCR methods:
 make benchmark METHODS="tesseract easyocr paddleocr"
 ```
 
+### Extracting Text Only (Without Evaluation)
+
+If you just want to extract text from images without evaluating against a ground truth:
+
+```bash
+make only-extract-text METHODS="tesseract"
+```
+
+This will save the results to a file named `result_<sample_name>.json` in the results directory. For example, if your sample directory is `dataset/sample_test`, the results will be saved to `results/result_sample_test.json`.
+
+You can specify a different sample directory:
+
+```bash
+make only-extract-text METHODS="tesseract" SAMPLE_DIR="dataset/my_custom_sample"
+```
+
+This is useful when you want to:
+- Process images with OCR methods without having ground truth available
+- Generate OCR results to share with others
+- Batch process a set of images with multiple OCR methods
+
 ### Full Pipeline
 
 Run the entire pipeline (sample, ground truth, and benchmark):

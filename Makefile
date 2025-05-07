@@ -8,6 +8,8 @@ SAMPLE_DIR := dataset/sample_test
 METHODS := tesseract
 VERTICAL_TOLERANCE := 15
 VLM_MODEL := google/gemini-2.5-flash-preview
+SAMPLE_NAME := $(shell basename $(SAMPLE_DIR))
+RESULT_FILE := result_$(SAMPLE_NAME).json
 
 # Python environment
 PYTHON := uv run 
@@ -24,6 +26,7 @@ help:
 	@echo "  sample            - Create a sample dataset"
 	@echo "  ground-truth      - Generate ground truth from annotations"
 	@echo "  ground-truth-vlm  - Generate ground truth using VLM models (requires OPENROUTER_API_KEY)"
+	@echo "  only-extract-text - Extract text only without evaluation and save to result_<sample_name>.json"
 	@echo "  benchmark         - Run OCR benchmark"
 	@echo "  eval              - Evaluate saved results against ground truth"
 	@echo "  eval-vlm          - Evaluate saved results against VLM ground truth"
@@ -34,8 +37,9 @@ help:
 	@echo "Example usage:"
 	@echo "  make sample SEED=123 SAMPLE_SIZE=5"
 	@echo "  make ground-truth VERTICAL_TOLERANCE=20"
-	@echo "  make ground-truth-vlm VLM_MODEL=\"anthropic/claude-3-5-sonnet\""
+	@echo "  make ground-truth-vlm VLM_MODEL=\"google/gemini-2.5-flash-preview\""
 	@echo "  make benchmark METHODS=\"tesseract easyocr\""
+	@echo "  make only-extract-text METHODS=\"tesseract\" SAMPLE_DIR=dataset/sample_test"
 
 # Install dependencies
 .PHONY: install
@@ -58,10 +62,12 @@ ground-truth:
 ground-truth-vlm:
 	$(PYTHON) generate_vlm_ground_truth.py --image-dir $(SAMPLE_DIR)/images --output-file $(SAMPLE_DIR)/ground_truth_vlm.json --model $(VLM_MODEL)
 
-.PHONY: benchmark
+# Extract text only without evaluation
+.PHONY: only-extract-text
 only-extract-text:
-	$(PYTHON) run_benchmark.py --image-dir $(SAMPLE_DIR)/images --ground-truth $(SAMPLE_DIR)/ground_truth.json --methods $(METHODS) --save-results --skip-eval
-
+	mkdir -p results
+	$(PYTHON) run_benchmark.py --image-dir $(SAMPLE_DIR)/images --methods $(METHODS) --save-results --skip-eval --results-file $(RESULT_FILE)
+	@echo "Results saved to results/$(RESULT_FILE)"
 
 # Run OCR benchmark
 .PHONY: benchmark

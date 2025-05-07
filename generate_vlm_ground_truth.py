@@ -113,14 +113,27 @@ def generate_ocr_for_image(
             # Get the extracted text
             result = response.choices[0].message.parsed
 
-            # Print the category and tags if available
-            if hasattr(result, "category"):
-                print(f"  Category: {result.category}")
-            if hasattr(result, "tags"):
-                print(f"  Tags: {', '.join(result.tags)}")
+            # Check if result is None
+            if result is None:
+                print("  Warning: Received None result from API")
+                return "ERROR: Received empty response from API"
 
-            # Return the extracted text
-            return result.markdown if hasattr(result, "markdown") else ""
+            # Print the category and tags if available
+            try:
+                if hasattr(result, "category") and result.category:
+                    print(f"  Category: {result.category}")
+                if hasattr(result, "tags") and result.tags:
+                    print(f"  Tags: {', '.join(result.tags)}")
+
+                # Return the extracted text
+                return result.markdown if (hasattr(result, "markdown") and result.markdown) else ""
+            except AttributeError as ae:
+                print(f"  Warning: Attribute error accessing result fields: {ae}")
+                # Try to stringify the result if possible
+                try:
+                    return str(result)
+                except:
+                    return "ERROR: Invalid response format"
 
         except Exception as e:
             if attempt < retries - 1:
