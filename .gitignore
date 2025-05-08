@@ -11,7 +11,10 @@ wheels/
 .venv
 .env
 dataset/*
+!dataset/sample/
 .cursor/
 
 
 results/*
+
+output/*
