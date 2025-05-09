@@ -52,18 +52,14 @@ def extract_text_from_annotation(annotation_file, vertical_tolerance=15, debug=F
     with open(annotation_file, "r") as f:
         data = json.load(f)
 
-    # Extract text elements with their bounding boxes
     text_elements = []
 
     for item in data.get("form", []):
-        # Skip empty items
         if not item.get("text", "").strip():
             continue
 
-        # Get bounding box coordinates
         box = item.get("box", [0, 0, 0, 0])
 
-        # Use item text if available
         text_elements.append(
             {"text": item["text"], "top": box[1], "left": box[0], "bottom": box[3], "right": box[2]}
         )
@@ -100,28 +96,22 @@ def extract_text_from_annotation(annotation_file, vertical_tolerance=15, debug=F
                 assigned = True
                 break
 
-        # Create a new row if no close match
         if not assigned:
             rows[center_y].append(element)
 
-    # Sort rows by vertical position (top to bottom)
     sorted_rows = sorted(rows.items(), key=lambda x: x[0])
 
-    # Sort elements within each row by horizontal position (left to right)
     result_lines = []
 
     for row_y, elements in sorted_rows:
-        # Sort elements by left coordinate
         sorted_elements = sorted(elements, key=lambda x: x["left"])
 
-        # Join elements in this row with spaces
         row_text = " ".join(element["text"] for element in sorted_elements)
         result_lines.append(row_text)
 
         if debug:
             print(f"Row {row_y}: {row_text}")
 
-    # Join all rows with newlines
     return "\n".join(result_lines)
 
 
@@ -132,7 +122,7 @@ def generate_ground_truth(annotations_dir, output_file, vertical_tolerance=15, d
     for file in os.listdir(annotations_dir):
         if file.endswith(".json"):
             base_name = os.path.splitext(file)[0]
-            img_name = f"{base_name}.png"  # Assuming .png extension
+            img_name = f"{base_name}.png"
 
             annotation_path = os.path.join(annotations_dir, file)
 
@@ -145,10 +135,8 @@ def generate_ground_truth(annotations_dir, output_file, vertical_tolerance=15, d
 
             ground_truth[img_name] = extracted_text
 
-    # Create output directory if it doesn't exist
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    # Save ground truth to JSON file
     with open(output_file, "w") as f:
         json.dump(ground_truth, f, indent=2)
 

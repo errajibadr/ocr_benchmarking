@@ -94,18 +94,15 @@ def word_error_rate(reference: str, hypothesis: str) -> float:
     I is the number of insertions
     N is the number of words in the reference
     """
-    # Normalize and split into words
     ref_words = reference.lower().split()
     hyp_words = hypothesis.lower().split()
 
     # Initialize the distance matrix
     d = np.zeros((len(ref_words) + 1, len(hyp_words) + 1), dtype=np.int32)
 
-    # Source prefixes can be transformed into empty string by dropping all chars
     for i in range(len(ref_words) + 1):
         d[i, 0] = i
 
-    # Target prefixes can be reached from empty source by inserting chars
     for j in range(len(hyp_words) + 1):
         d[0, j] = j
 
@@ -119,10 +116,9 @@ def word_error_rate(reference: str, hypothesis: str) -> float:
                 d[i - 1, j - 1] + cost,  # Substitution
             )
 
-    # The last element contains the edit distance
     edit_distance = d[len(ref_words), len(hyp_words)]
 
-    # Calculate WER (avoid division by zero)
+    # Calculate WER
     if len(ref_words) == 0:
         return 1.0 if len(hyp_words) > 0 else 0.0
 
@@ -139,18 +135,15 @@ def character_error_rate(reference: str, hypothesis: str) -> float:
     I is the number of character insertions
     N is the number of characters in the reference
     """
-    # Normalize
     ref_chars = reference.lower()
     hyp_chars = hypothesis.lower()
 
     # Initialize the distance matrix
     d = np.zeros((len(ref_chars) + 1, len(hyp_chars) + 1), dtype=np.int32)
 
-    # Source prefixes can be transformed into empty string by dropping all chars
     for i in range(len(ref_chars) + 1):
         d[i, 0] = i
 
-    # Target prefixes can be reached from empty source by inserting chars
     for j in range(len(hyp_chars) + 1):
         d[0, j] = j
 
@@ -167,7 +160,7 @@ def character_error_rate(reference: str, hypothesis: str) -> float:
     # The last element contains the edit distance
     edit_distance = d[len(ref_chars), len(hyp_chars)]
 
-    # Calculate CER (avoid division by zero)
+    # Calculate CER
     if len(ref_chars) == 0:
         return 1.0 if len(hyp_chars) > 0 else 0.0
 
@@ -176,7 +169,6 @@ def character_error_rate(reference: str, hypothesis: str) -> float:
 
 def common_word_accuracy(reference: str, hypothesis: str) -> float:
     """Calculate the percentage of words in reference that also appear in hypothesis"""
-    # Normalize and split into words
     ref_words = set(reference.lower().split())
     hyp_words = set(hypothesis.lower().split())
 
@@ -198,13 +190,10 @@ def normalize_text(text: str) -> str:
     """
     import re
 
-    # Convert to lowercase
     text = text.lower()
 
-    # Remove punctuation
     text = re.sub(r"[^\w\s]", " ", text)
 
-    # Collapse whitespace
     text = re.sub(r"\s+", " ", text)
 
     return text.strip()
@@ -245,36 +234,24 @@ def evaluate_results(results: List[OCRResult], ground_truth: Dict[str, str]) -> 
         for filename, extracted_text in result.extracted_text.items():
             if filename in ground_truth and not extracted_text.startswith("ERROR:"):
                 truth = ground_truth[filename]
-                if truth:  # Ensure ground truth is not empty
-                    # Calculate metrics
-
-                    # Normalize texts for better comparison
+                if truth:
                     norm_extracted = normalize_text(extracted_text)
                     norm_truth = normalize_text(truth)
-
-                    # Basic ratio
                     method_stats["text_length_ratio"][filename] = len(extracted_text) / len(truth)
 
                     # Text similarity (SequenceMatcher)
                     method_stats["text_similarity"][filename] = text_similarity(
                         norm_extracted, norm_truth
                     )
-
-                    # Word Error Rate
                     method_stats["word_error_rate"][filename] = word_error_rate(
                         norm_truth, norm_extracted
                     )
-
-                    # Character Error Rate
                     method_stats["character_error_rate"][filename] = character_error_rate(
                         norm_truth, norm_extracted
                     )
-
-                    # Common Word Accuracy
                     method_stats["common_word_accuracy"][filename] = common_word_accuracy(
                         norm_truth, norm_extracted
                     )
-
                     method_stats["file_counts"]["success"] += 1
                     valid_files.append(filename)
                 else:
@@ -282,7 +259,6 @@ def evaluate_results(results: List[OCRResult], ground_truth: Dict[str, str]) -> 
             else:
                 method_stats["file_counts"]["error"] += 1
 
-        # Calculate average metrics if we have valid files
         if valid_files:
             method_stats["avg_metrics"]["similarity"] = np.mean(
                 [method_stats["text_similarity"][f] for f in valid_files]
@@ -325,16 +301,12 @@ def save_ocr_results(
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, filename)
 
-    # Convert OCRResult objects to dictionaries
     results_dict = {result.method_name: asdict(result) for result in results}
 
-    # If file exists, update it with new results
     if os.path.exists(output_file):
         try:
             with open(output_file, "r", encoding="utf-8") as f:
                 existing_results = json.load(f)
-
-            # Update existing results with new ones
             existing_results.update(results_dict)
             results_dict = existing_results
             print(f"Updated existing OCR results in {output_file}")
@@ -356,10 +328,8 @@ def load_ocr_results(input_file: str = "results/ocr_results.json") -> List[OCRRe
     with open(input_file, "r", encoding="utf-8") as f:
         results_dict = json.load(f)
 
-    # Convert dictionaries back to OCRResult objects
     results = []
     for method_name, result_data in results_dict.items():
-        # Ensure method_name is consistent
         if result_data["method_name"] != method_name:
             result_data["method_name"] = method_name
 
@@ -373,7 +343,6 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
     """Create visualizations for OCR comparison"""
     os.makedirs(output_dir, exist_ok=True)
 
-    # Processing time comparison
     methods = list(evaluation.keys())
     proc_times = [evaluation[m]["avg_processing_time"] for m in methods]
 
@@ -432,7 +401,7 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
 
     for method in methods:
         ratios = list(evaluation[method]["text_length_ratio"].values())
-        if ratios:  # Only add if we have data
+        if ratios:
             data.append(ratios)
             labels.append(method)
 
@@ -447,7 +416,6 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
         plt.savefig(os.path.join(output_dir, "text_length_comparison.png"))
         plt.show()
 
-    # Success rate
     success_rates = []
     for m in methods:
         success = evaluation[m]["file_counts"]["success"]
@@ -467,7 +435,6 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
     plt.savefig(os.path.join(output_dir, "success_rate_comparison.png"))
     plt.show()
 
-    # Create a summary table visualization
     summary_data = {
         "Method": methods,
         "Similarity": [round(evaluation[m]["avg_metrics"]["similarity"], 3) for m in methods],
@@ -481,7 +448,6 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
     fig, ax = plt.subplots(figsize=(12, len(methods) * 0.8 + 1.5))
     ax.axis("off")
 
-    # Create table
     col_labels = list(summary_data.keys())
     table_data = []
     for i in range(len(methods)):
@@ -497,7 +463,6 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
         cellLoc="center",
     )
 
-    # Style the table
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1.2, 1.5)
@@ -524,7 +489,6 @@ def visualize_results(evaluation: Dict, output_dir: str = "results"):
     plt.savefig(os.path.join(output_dir, "summary_table.png"), bbox_inches="tight")
     plt.show()
 
-    # Save the evaluation results as JSON
     with open(os.path.join(output_dir, "evaluation_metrics.json"), "w", encoding="utf-8") as f:
         json.dump(
             {

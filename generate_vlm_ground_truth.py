@@ -9,7 +9,7 @@ import json
 import os
 import pathlib
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -81,7 +81,7 @@ def generate_ocr_for_image(
     Returns:
         Extracted text from the image
     """
-    # Encode the image to base64
+
     image_data = encode_image(image_path)
 
     for attempt in range(retries):
@@ -118,7 +118,6 @@ def generate_ocr_for_image(
                 print("  Warning: Received None result from API")
                 return "ERROR: Received empty response from API"
 
-            # Print the category and tags if available
             try:
                 if hasattr(result, "category") and result.category:
                     print(f"  Category: {result.category}")
@@ -143,7 +142,6 @@ def generate_ocr_for_image(
                 print(f"  All {retries} attempts failed: {str(e)}")
                 return f"ERROR: {str(e)}"
 
-    # This should never be reached due to the return in the loop
     return "ERROR: Maximum retries exceeded"
 
 
@@ -166,7 +164,6 @@ def generate_vlm_ground_truth(
     Returns:
         Dictionary of image filenames to OCR results
     """
-    # Get API key from environment variable
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise ValueError(
@@ -174,7 +171,6 @@ def generate_vlm_ground_truth(
             "Please set it in your .env file or directly in your environment."
         )
 
-    # Create OpenAI client with OpenRouter
     client = OpenAI(
         api_key=api_key,
         base_url="https://openrouter.ai/api/v1",
@@ -194,7 +190,6 @@ def generate_vlm_ground_truth(
     print(f"Found {total_images} images in {image_dir}")
     print(f"Results will be saved to: {output_file}")
 
-    # Process images with progress bar
     for image_path in tqdm(images, desc="Processing images"):
         print(f"\nProcessing: {image_path.name}")
         try:
@@ -216,13 +211,11 @@ def generate_vlm_ground_truth(
             results[image_path.name] = f"ERROR: {str(e)}"
             errors.append({"file": image_path.name, "error": str(e)})
 
-    # Save results to JSON file
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
     print(f"\n✅ VLM ground truth saved to {output_path}")
 
-    # Print summary
     successful = total_images - len(errors)
     print(f"\nSummary: {successful}/{total_images} images processed successfully")
 

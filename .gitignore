@@ -16,5 +16,6 @@ dataset/*
 
 
 results/*
+!results/*png
 
 output/*
