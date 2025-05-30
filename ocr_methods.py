@@ -6,7 +6,11 @@ OCR Methods - Collection of different OCR implementations for comparison
 import base64
 import os
 import time
-from typing import List
+from typing import List, Optional
+
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
 
 
 def ocr_docling(image_path: str) -> str:
@@ -214,7 +218,12 @@ def encode_image(image_path: str) -> str:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-def ocr_llm_base(image_path: str, model_name: str) -> str:
+def ocr_llm_base(
+    image_path: str,
+    model_name: str,
+    base_url: str = "https://openrouter.ai/api/v1",
+    api_key: str | None = None,
+) -> str:
     """Base function for LLM-based OCR methods using OpenRouter.
 
     Args:
@@ -235,7 +244,7 @@ def ocr_llm_base(image_path: str, model_name: str) -> str:
 
     # Create OpenAI client with OpenRouter compatibility
     client = OpenAI(
-        api_key=openrouter_api_key,
+        api_key=api_key or openrouter_api_key,
         base_url="https://openrouter.ai/api/v1",
     )
 
@@ -295,6 +304,157 @@ def ocr_llm_base(image_path: str, model_name: str) -> str:
     return "ERROR: Maximum retries exceeded"
 
 
+def ocr_vllm_openai(
+    image_path: str,
+    model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct-AWQ",
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+    max_tokens: int = 2000,
+    temperature: float = 0.1,
+    system_prompt: Optional[str] = None,
+    user_prompt: Optional[str] = None,
+    verbose: bool = False,
+) -> str:
+    """Extract text from image using VLLM OpenAI-compatible API.
+
+    Args:
+        image_path: Path to the image file
+        model_name: Model name to use (default: Qwen/Qwen2.5-VL-3B-Instruct-AWQ)
+        base_url: API base URL (defaults to RUNPOD_BASE_URL env var)
+        api_key: API key (defaults to RUNPOD_API_KEY env var)
+        max_tokens: Maximum tokens to generate
+        temperature: Sampling temperature
+        system_prompt: Custom system prompt (optional)
+        user_prompt: Custom user prompt (optional)
+        verbose: Print timing and token information
+
+    Returns:
+        Extracted text from the image
+    """
+    from openai import OpenAI
+
+    # Use environment variables as defaults
+    base_url = base_url or os.getenv("RUNPOD_BASE_URL")
+    api_key = api_key or os.getenv("RUNPOD_API_KEY")
+
+    if not base_url or not api_key:
+        return "ERROR: base_url and api_key must be provided or set as environment variables"
+
+    client = OpenAI(
+        base_url=base_url,
+        api_key=api_key,
+    )
+
+    # Default system prompt
+    if system_prompt is None:
+        system_prompt = (
+            "You are a professional OCR assistant. Your task is to extract ALL visible text from images "
+            "while preserving the original document structure and formatting.\n\n"
+            "**CAPABILITIES**: Text recognition, table extraction, formula detection, layout preservation\n\n"
+            "**OUTPUT REQUIREMENTS**:\n"
+            "- Extract every piece of readable text including headers, body text, captions, footnotes\n"
+            "- Maintain spatial relationships and reading order\n"
+            "- Use markdown for tables: | Column 1 | Column 2 |\n"
+            "- Preserve lists, numbering, and indentation\n"
+            "- Mark unclear text as [UNCLEAR: best_guess]\n"
+            "- Mark illegible text as [ILLEGIBLE]\n\n"
+            "do Preserve content exactly as written. Extract only what is visible in the image."
+        )
+
+    # Default user prompt
+    if user_prompt is None:
+        user_prompt = "Document content : \n```markdown"
+
+    image_data = encode_image(image_path)
+    start_time = time.time()
+
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{image_data}"},
+                        },
+                    ],
+                },
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
+        duration = time.time() - start_time
+
+        if verbose:
+            print(f"Duration: {duration:.2f} seconds")
+
+            # Calculate tokens per second if usage information is available
+            if response.usage and response.usage.completion_tokens:
+                tokens_per_second = response.usage.completion_tokens / duration
+                print(f"Tokens/second: {tokens_per_second:.2f}")
+                print(f"Total tokens: {response.usage.total_tokens}")
+                print(f"Prompt tokens: {response.usage.prompt_tokens}")
+                print(f"Completion tokens: {response.usage.completion_tokens}")
+            else:
+                print("Token usage information not available")
+
+        return response.choices[0].message.content or ""
+
+    except Exception as e:
+        return f"ERROR: VLLM OCR failed: {str(e)}"
+
+
+# Create specific model functions using regular function definitions
+def qwen_3b_awq(image_path: str, **kwargs) -> str:
+    """OCR using Qwen 2.5 VL 3B AWQ model."""
+    return ocr_vllm_openai(image_path, model_name="Qwen/Qwen2.5-VL-3B-Instruct-AWQ", **kwargs)
+
+
+def qwen_3b(image_path: str, **kwargs) -> str:
+    """OCR using Qwen 2.5 VL 3B model."""
+    return ocr_vllm_openai(image_path, model_name="Qwen/Qwen2.5-VL-3B-Instruct", **kwargs)
+
+
+def qwen_7b(image_path: str, **kwargs) -> str:
+    """OCR using Qwen 2.5 VL 7B model."""
+    return ocr_vllm_openai(image_path, model_name="Qwen/Qwen2.5-VL-7B-Instruct", **kwargs)
+
+
+def qwen_7b_w8a(image_path: str, **kwargs) -> str:
+    """OCR using Qwen 2.5 VL 7B W8A model."""
+    return ocr_vllm_openai(
+        image_path, model_name="RedHatAI/Qwen2.5-VL-7B-Instruct-quantized.w8a8", **kwargs
+    )
+
+
+def qwen_7b_awq(image_path: str, **kwargs) -> str:
+    """OCR using Qwen 2.5 VL 7B AWQ model."""
+    return ocr_vllm_openai(image_path, model_name="Qwen/Qwen2.5-VL-7B-Instruct-AWQ", **kwargs)
+
+
+def qwen_32b_awq(image_path: str, **kwargs) -> str:
+    """OCR using Qwen 2.5 VL 32B AWQ model."""
+    return ocr_vllm_openai(image_path, model_name="Qwen/Qwen2.5-VL-32B-Instruct-AWQ", **kwargs)
+
+
+def rolmocr_8b(image_path: str, **kwargs) -> str:
+    """OCR using reducto/RolmOCR 8B model."""
+    return ocr_vllm_openai(image_path, model_name="reducto/RolmOCR", **kwargs)
+
+
+def rolmocr_q4_k_m(image_path: str, **kwargs) -> str:
+    """OCR using reducto/RolmOCR Q4_K_M model."""
+    return ocr_vllm_openai(image_path, model_name="mradermacher/RolmOCR-GGUF:Q4_K_M", **kwargs)
+
+
 def ocr_qwen32ocr(image_path: str) -> str:
     """Extract text from image using Qwen 2.5 VL 32B Instruct model via OpenRouter.
 
@@ -342,6 +502,104 @@ def ocr_gemini(image_path: str) -> str:
     return ocr_llm_base(image_path, "google/gemini-2.5-flash-preview")
 
 
+def ocr_mlx_smolvlm2_2b(image_path, model_name: str = "HuggingFaceTB/SmolVLM2-2.2B-Instruct"):
+    import mlx.core as mx
+    from mlx_lm.generate import generate
+    from mlx_lm.utils import load
+    from PIL import Image
+
+    # Load SmolVLM with MLX
+    model, tokenizer = load(model_name)
+    # This is a simplified example - you might need to adapt based on model format
+    response = generate(model, tokenizer, prompt="extract text from this image", max_tokens=200)
+    return response
+
+
+def ocr_ollama(image_path: str, model_name: str = "qwen2.5vl:3b") -> str:
+    """Extract text from image using Ollama model.
+
+    Installation: !pip install ollama
+    """
+    from openai import OpenAI
+    from pydantic import BaseModel, Field
+
+    client = OpenAI(
+        base_url="http://localhost:11434/v1",
+        api_key="ollama",  # required, but unused
+    )
+
+    image_data = encode_image(image_path)
+
+    class OCRResult(BaseModel):
+        markdown: str = Field(
+            description="The extracted text from the image with proper formatting"
+        )
+        category: str = Field(
+            description="The category of the document (e.g., invoice, receipt, form, letter, article)"
+        )
+        tags: List[str] = Field(description="The tags relevant to the document content")
+
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {
+                "role": "system",
+                "content": "Generate OCRs with Markdowns and correctly formatted layout when possible",
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Extract all text from this image with proper formatting. Also identify the document category and provide relevant tags.",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{image_data}"},
+                    },
+                ],
+            },
+        ],
+    )
+    markdown = response.choices[0].message.content or ""
+    print(markdown)
+    return markdown
+
+
+def ocr_qwen_vl_2_5(image_path: str, model_name: str = "qwen2.5vl:3b") -> str:
+    """Extract text from image using Ollama model.
+
+    Installation: !pip install ollama
+    """
+    return ocr_ollama(image_path, model_name)
+
+
+def ocr_smolvlm256(
+    image_path: str, model_name: str = "hf.co/ggml-org/SmolVLM-256M-Instruct-GGUF:Q8_0"
+) -> str:
+    """Extract text from image using SmolVLM model.
+
+    Installation: !pip install ollama
+    """
+    return ocr_ollama(image_path, model_name)
+
+
+def ocr_smolvlm500(
+    image_path: str, model_name: str = "hf.co/ggml-org/SmolVLM-500M-Instruct-GGUF:Q8_0"
+) -> str:
+    """Extract text from image using SmolVLM model.
+
+    Installation: !pip install ollama
+    """
+    return ocr_ollama(image_path, model_name)
+
+
+# Legacy function for backward compatibility
+def ocr_vllm_openai_legacy(image_path: str) -> str:
+    """Legacy function - use qwen_7b_awq instead."""
+    return qwen_7b_awq(image_path, verbose=True)
+
+
 OCR_METHODS = {
     "docling": ocr_docling,
     "tesseract": ocr_tesseract,
@@ -354,4 +612,59 @@ OCR_METHODS = {
     "pixtral": ocr_pixtral,
     "mistral": ocr_mistral,
     "gemini": ocr_gemini,
+    "qwen2.5vl-3b": ocr_qwen_vl_2_5,
+    "smolvlm256": ocr_smolvlm256,
+    "smolvlm500": ocr_smolvlm500,
+    "mlx_smolvlm2_2b": ocr_mlx_smolvlm2_2b,
+    # VLLM methods - Basic models
+    "qwen_3b": qwen_3b,
+    "qwen_3b_awq": qwen_3b_awq,
+    "qwen_7b": qwen_7b,
+    "qwen_7b_w8a": qwen_7b_w8a,
+    "qwen_7b_awq": qwen_7b_awq,
+    "qwen_32b_awq": qwen_32b_awq,
+    "RolmOCR_8b": rolmocr_8b,
+    "RolmOCR_Q4_K_M": rolmocr_q4_k_m,
+    # Legacy compatibility
+    "vllm_openai": ocr_vllm_openai_legacy,
 }
+
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+
+    load_dotenv(override=True)
+    # print(
+    #     ocr_vllm_openai(
+    #         "dataset/sample/images/82200067_0069.png",
+    #         model_name="Qwen/Qwen2.5-VL-7B-Instruct-AWQ",
+    #         verbose=True,
+    #     )
+    # )
+
+    print(qwen_3b_awq("dataset/sample/images/82200067_0069.png", verbose=True))
+    # Test the new modular functions
+
+    test_image = "dataset/sample/images/82200067_0069.png"
+
+    # # Test different model variants
+    # print("Testing Qwen 3B (fast):")
+    # result = qwen_3b_fast(test_image, verbose=True)
+    # print(f"Result length: {len(result)} characters")
+    # print()
+
+    # print("Testing Qwen 7B (detailed):")
+    # result = qwen_7b_detailed(test_image, verbose=True)
+    # print(f"Result length: {len(result)} characters")
+    # print()
+
+    # # Test custom configuration
+    # print("Testing custom configuration:")
+    # custom_ocr = partial(
+    #     ocr_vllm_openai,
+    #     model_name="Qwen/Qwen2.5-VL-3B-Instruct-AWQ",
+    #     max_tokens=500,
+    #     temperature=0.0,
+    #     system_prompt="Extract only the main text, ignore headers and footers.",
+    # )
+    # result = custom_ocr(test_image, verbose=True)
+    # print(f"Custom result length: {len(result)} characters")

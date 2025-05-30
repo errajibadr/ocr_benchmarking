@@ -1,4 +1,4 @@
-# OCR Benchmarking Makefile
+ # OCR Benchmarking Makefile
 
 # Variables
 SEED := 42
