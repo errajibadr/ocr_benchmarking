@@ -184,16 +184,48 @@ def common_word_accuracy(reference: str, hypothesis: str) -> float:
 def normalize_text(text: str) -> str:
     """Normalize text for better comparison
 
+    - Remove layout characters (|, -, _, `)
+    - Remove markdown formatting
     - Lowercase
     - Remove extra whitespace
-    - Remove punctuation
+    - Remove remaining punctuation
     """
     import re
 
+    # First, remove specific layout characters that are common in markdown/formatting
+    layout_chars = ["|", "-", "_", "`"]
+    for char in layout_chars:
+        text = text.replace(char, " ")
+
+    # Remove common markdown syntax
+    # Remove markdown headers (# ## ###)
+    text = re.sub(r"#{1,6}\s*", "", text)
+
+    # Remove markdown bold/italic (**text**, *text*)
+    text = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
+
+    # Remove markdown links [text](url)
+    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
+
+    # Remove markdown code blocks ```text```
+    text = re.sub(r"```[^`]*```", "", text)
+
+    # Remove markdown inline code `text`
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+
+    # Remove bullet points and list markers
+    text = re.sub(r"^\s*[-*+]\s+", "", text, flags=re.MULTILINE)
+
+    # Remove numbered list markers
+    text = re.sub(r"^\s*\d+\.\s+", "", text, flags=re.MULTILINE)
+
+    # Convert to lowercase
     text = text.lower()
 
+    # Remove remaining punctuation (except spaces)
     text = re.sub(r"[^\w\s]", " ", text)
 
+    # Normalize whitespace
     text = re.sub(r"\s+", " ", text)
 
     return text.strip()
