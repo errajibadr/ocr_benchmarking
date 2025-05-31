@@ -13,6 +13,28 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
+system_prompt = """
+You are a professional OCR assistant. Your task is to extract ALL visible text from images while preserving the original document structure and formatting.
+
+**CAPABILITIES**: Text recognition, table extraction, formula detection, layout preservation
+
+**OUTPUT REQUIREMENTS**:\n
+- Extract every piece of readable text including headers, body text, captions, footnotes
+- Maintain spatial relationships and reading order
+- Use markdown for tables: | Column 1 | Column 2 |
+- Preserve lists, numbering, and indentation
+- Mark unclear text as [UNCLEAR: best_guess]
+- Mark illegible text as [ILLEGIBLE]
+
+Do Preserve content exactly as written. Extract only what is visible in the image.
+"""
+
+user_prompt = """
+document content : 
+```markdown
+"""
+
+
 def ocr_docling(image_path: str) -> str:
     """Extract text from image using Docling OCR
 
@@ -502,20 +524,14 @@ def ocr_gemini(image_path: str) -> str:
     return ocr_llm_base(image_path, "google/gemini-2.5-flash-preview")
 
 
-def ocr_mlx_smolvlm2_2b(image_path, model_name: str = "HuggingFaceTB/SmolVLM2-2.2B-Instruct"):
-    import mlx.core as mx
-    from mlx_lm.generate import generate
-    from mlx_lm.utils import load
-    from PIL import Image
-
-    # Load SmolVLM with MLX
-    model, tokenizer = load(model_name)
-    # This is a simplified example - you might need to adapt based on model format
-    response = generate(model, tokenizer, prompt="extract text from this image", max_tokens=200)
-    return response
-
-
-def ocr_ollama(image_path: str, model_name: str = "qwen2.5vl:3b") -> str:
+def ocr_ollama(
+    image_path: str,
+    model_name: str = "qwen2.5vl:3b",
+    custom_system_prompt: str = "none",
+    custom_user_prompt: str = "none",
+    max_tokens: int = 2000,
+    temperature: float = 0.1,
+) -> str:
     """Extract text from image using Ollama model.
 
     Installation: !pip install ollama
@@ -539,19 +555,22 @@ def ocr_ollama(image_path: str, model_name: str = "qwen2.5vl:3b") -> str:
         )
         tags: List[str] = Field(description="The tags relevant to the document content")
 
+    u_system_prompt = custom_system_prompt or system_prompt
+    u_user_prompt = custom_user_prompt or user_prompt
+
     response = client.chat.completions.create(
         model=model_name,
         messages=[
             {
                 "role": "system",
-                "content": "Generate OCRs with Markdowns and correctly formatted layout when possible",
+                "content": u_system_prompt,
             },
             {
                 "role": "user",
                 "content": [
                     {
                         "type": "text",
-                        "text": "Extract all text from this image with proper formatting. Also identify the document category and provide relevant tags.",
+                        "text": u_user_prompt,
                     },
                     {
                         "type": "image_url",
@@ -560,6 +579,8 @@ def ocr_ollama(image_path: str, model_name: str = "qwen2.5vl:3b") -> str:
                 ],
             },
         ],
+        max_tokens=max_tokens,
+        temperature=temperature,
     )
     markdown = response.choices[0].message.content or ""
     print(markdown)
@@ -589,9 +610,44 @@ def ocr_smolvlm500(
 ) -> str:
     """Extract text from image using SmolVLM model.
 
+
+
     Installation: !pip install ollama
     """
     return ocr_ollama(image_path, model_name)
+
+
+def ocr_smoldocling_256(
+    image_path: str, model_name: str = "hf.co/mradermacher/SmolDocling-256M-preview-GGUF:Q4_K_M"
+) -> str:
+    """Extract text from image using SmolDocLing model.
+
+    should pull model from hf.co/mradermacher/SmolDocling-256M-preview-GGUF:Q4_K_M before running it
+
+    Installation: !pip install ollama
+    """
+    # Load and run the model:
+    return ocr_ollama(
+        image_path,
+        model_name,
+        custom_system_prompt="convert this page to docling",
+        custom_user_prompt="-",
+        max_tokens=2000,
+        temperature=0.1,
+    )
+
+
+def ocr_mlx_smolvlm2_2b(image_path, model_name: str = "HuggingFaceTB/SmolVLM2-2.2B-Instruct"):
+    import mlx.core as mx
+    from mlx_lm.generate import generate
+    from mlx_lm.utils import load
+    from PIL import Image
+
+    # Load SmolVLM with MLX
+    model, tokenizer = load(model_name)
+    # This is a simplified example - you might need to adapt based on model format
+    response = generate(model, tokenizer, prompt="extract text from this image", max_tokens=200)
+    return response
 
 
 # Legacy function for backward compatibility
@@ -641,11 +697,12 @@ if __name__ == "__main__":
     #     )
     # )
 
-    print(qwen_3b_awq("dataset/sample/images/82200067_0069.png", verbose=True))
+    # print(qwen_3b_awq("dataset/sample/images/82200067_0069.png", verbose=True))
     # Test the new modular functions
 
     test_image = "dataset/sample/images/82200067_0069.png"
 
+    print(ocr_smoldocling_256(test_image))
     # # Test different model variants
     # print("Testing Qwen 3B (fast):")
     # result = qwen_3b_fast(test_image, verbose=True)
